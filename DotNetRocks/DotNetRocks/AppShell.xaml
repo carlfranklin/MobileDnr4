@@ -77,4 +77,10 @@
         <ShellContent Route="Home" ContentTemplate="{DataTemplate local:HomePage}" />
     </FlyoutItem>
 
+    <FlyoutItem Title="Details" Icon="icon_about.png">
+        <ShellContent Route="DetailPage" ContentTemplate="{DataTemplate local:DetailPage}" />
+    </FlyoutItem>
+    
+
+
 </Shell>

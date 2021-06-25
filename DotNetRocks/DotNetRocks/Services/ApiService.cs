@@ -46,6 +46,15 @@ namespace DotNetRocks.Services
             return JsonConvert.DeserializeObject<List<Show>>(response);
         }
 
+        public async Task<Show> GetShowWithDetails(int ShowNumber)
+        {
+            string Url = $"{ShowName}/{ShowNumber}/getwithdetails";
+            var result = await httpClient.GetAsync(Url);
+            result.EnsureSuccessStatusCode();
+            var response = await result.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<Show>(response);
+        }
+
         public async Task<ShowDetails> GetShowDetails(int ShowNumber)
         {
             string Url = $"{ShowName}/{ShowNumber}/getdetails";

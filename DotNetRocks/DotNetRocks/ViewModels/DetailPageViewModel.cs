@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Runtime.CompilerServices;
-using System.ComponentModel;
 using MvvmHelpers;
 using System.Windows.Input;
 using MvvmHelpers.Commands;
@@ -12,44 +10,62 @@ using MonkeyCache.FileStore;
 using System.IO;
 using System.Net;
 using Xamarin.Essentials;
-using System.Xml;
-using MobileDnr.Services;
-using MobileDnr.Models;
-using System.Collections.ObjectModel;
+using DotNetRocks.Models;
 
-namespace MobileDnr
+namespace DotNetRocks.ViewModels
 {
-    public class MainViewModel : BaseViewModel
+    public class DetailPageViewModel : BaseViewModel
     {
         string CacheDir = "";
         string CachedFileName = "";
+        string Mp3FileName = "";
         FileStream LocalFileStream = null;
-        ApiService ApiService = new ApiService();
 
-        public MainViewModel()
+        public DetailPageViewModel()
         {
             Barrel.ApplicationId = "mobile_dnr";
             CacheDir = FileSystem.CacheDirectory;
             CrossMediaManager.Current.PositionChanged += Current_PositionChanged;
             CrossMediaManager.Current.MediaItemFinished += Current_MediaItemFinished;
-
-            // Does the file exist?
-            if (System.IO.File.Exists(CachedFileName))
-            {
-                // Yes! We are cached
-                IsCached = true;
-            }
-            var t = Task.Run(() => LoadAllShows());
-            t.Wait();
         }
 
-        private async Task LoadAllShows()
+        bool isReady = false;
+        public bool IsReady { 
+            get
+            {
+                return isReady;
+            }
+            set
+            {
+                SetProperty(ref isReady, value);
+            }
+        }
+
+        private Show currentShow;
+        public Show CurrentShow
         {
-            AllShows = await ApiService.GetAllShows();
-            AllShows[0].ShowDetails = await ApiService.GetShowDetails(AllShows[0].ShowNumber);
-            CurrentStatus = $"{AllShows.Count} shows downloaded. First show title: {AllShows[0].ShowTitle}. " +
-                $"The first guest is {AllShows[0].ShowDetails.Guests[0].Name} " +
-                $"and the file can be downloaded at {AllShows[0].ShowDetails.File.Url}";
+            get
+            {
+                return currentShow;
+            }
+            set
+            {
+                IsReady = false;
+                SetProperty(ref currentShow, value);
+                var uri = new Uri(CurrentShow.ShowDetails.File.Url);
+                string DirectoryName = uri.Segments[uri.Segments.Length - 3];
+                string FileNameOnly = Path.GetFileName(CurrentShow.ShowDetails.File.Url);
+                Mp3FileName = DirectoryName.Substring(0, DirectoryName.Length - 1)
+                        + FileNameOnly;
+                CachedFileName = Path.Combine(CacheDir, Mp3FileName);
+                // Does the file exist?
+                if (System.IO.File.Exists(CachedFileName))
+                {
+                    // Yes! We are cached
+                    IsCached = true;
+                }
+                IsReady = true;
+            }
         }
 
         private void Current_PositionChanged(object sender, MediaManager.Playback.PositionChangedEventArgs e)
@@ -58,7 +74,16 @@ namespace MobileDnr
             TimeSpan currentMediaDuration = CrossMediaManager.Current.Duration;
             TimeSpan TimeRemaining = currentMediaDuration.Subtract(currentMediaPosition);
             if (IsPlaying)
-                CurrentStatus = $"Time Remaining: {TimeRemaining.Minutes:D2}:{TimeRemaining.Seconds:D2}";
+            {
+                if (TimeRemaining.Hours == 0)
+                {
+                    CurrentStatus = $"Time Remaining: {TimeRemaining.Minutes:D2}:{TimeRemaining.Seconds:D2}";
+                }
+                else
+                {
+                    CurrentStatus = $"Time Remaining: {TimeRemaining.Hours:D2}:{TimeRemaining.Minutes:D2}:{TimeRemaining.Seconds:D2}";
+                }
+            }
         }
 
         private void Current_MediaItemFinished(object sender, MediaManager.Media.MediaItemEventArgs e)
@@ -91,16 +116,17 @@ namespace MobileDnr
             {
                 if (play == null)
                 {
-                    play = new AsyncCommand<string>(PerformPlay);
+                    play = new AsyncCommand(PerformPlay);
                 }
 
                 return play;
             }
         }
 
-        public void DownloadFile(string Url)
+
+        public void DownloadFile()
         {
-            var Uri = new Uri(Url);
+            var Uri = new Uri(CurrentShow.ShowDetails.File.Url);
 
             WebClient webClient = new WebClient();
             using (webClient)
@@ -122,26 +148,24 @@ namespace MobileDnr
             }
         }
 
-        private async Task PerformPlay(string Url)
+        private async Task PerformPlay()
         {
             IsPlaying = true;
-            string FileNameOnly = Path.GetFileName(Url);
-            CachedFileName = Path.Combine(CacheDir, FileNameOnly);
-
+            
             if (!IsCached)
             {
                 // Not in cache. Play from URL
                 CurrentStatus = "Downloading...";
-                await CrossMediaManager.Current.Play(Url);
+                await CrossMediaManager.Current.Play(CurrentShow.ShowDetails.File.Url);
                 // Download the file to the cache
-                DownloadFile(Url);
+                DownloadFile();
             }
             else
             {
                 // In the cache. Play local file
                 CurrentStatus = "Playing from Cache...";
                 LocalFileStream = System.IO.File.OpenRead(CachedFileName);
-                await CrossMediaManager.Current.Play(LocalFileStream, FileNameOnly);
+                await CrossMediaManager.Current.Play(LocalFileStream, Mp3FileName);
             }
         }
 
@@ -158,7 +182,7 @@ namespace MobileDnr
             }
         }
 
-        protected async Task PerformStop()
+        public async Task PerformStop()
         {
             IsPlaying = false;
             CurrentStatus = "";
@@ -170,14 +194,20 @@ namespace MobileDnr
             }
         }
 
+
+
         private string currentStatus;
-        public string CurrentStatus { get => currentStatus; set => SetProperty(ref currentStatus, value); }
+        public string CurrentStatus
+        {
+            get => currentStatus;
+            set => SetProperty(ref currentStatus, value);
+        }
 
         private bool isCached;
-        public bool IsCached { get => isCached; set => SetProperty(ref isCached, value); }
-
-        private List<Show> allShows = new List<Show>();
-        public List<Show> AllShows { get => allShows; set => SetProperty(ref allShows, value); }
-
+        public bool IsCached
+        {
+            get => isCached;
+            set => SetProperty(ref isCached, value);
+        }
     }
 }
