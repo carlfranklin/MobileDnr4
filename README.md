@@ -12,7 +12,7 @@ All episodes are listed at https://thedotnetshow.com
 
 Starting with episode 2 of The .NET Show, I am building a mobile podcast app for my podcast, .NET Rocks! using Xamarin Forms. 
 
-At this point 
+At this point we have converted our project (*MobileDnr*) into a new Shell project (*DotNetRocks*), and are ready to set up a master/detail UI. The user will select an episode from the main page, and when selected, a new Detail page will fly out showing all the details and allowing us to play and stop.
 
 ### Step 15 - Remove MobileDnr Projects
 
@@ -22,7 +22,7 @@ These three projects served their purpose. We pillaged the code from this simple
 - MobileDnr.Android
 - MobileDnr.iOS
 
-### Step 16 - Create a ShowDetails View
+### Step 16 - Create a Detail View
 
 In the *DotNetRocks* project, right-click on the *Views* folder and select **Add -> New Item**, then select **Xamarin Forms** on the left, and **Content Page** in the list. Name it *DetailPage* and click the **Add** button
 
@@ -57,7 +57,7 @@ Those last two lines of code register the name of the view with the type of the 
 
 ### Step 18 - Create a new ViewModel for DetailPage
 
-### Add a new class file to the *ViewModels* folder named *DetailPageViewModel.cs*
+Add a new class file to the *ViewModels* folder named *DetailPageViewModel.cs*
 
 ```c#
 using System;
@@ -695,5 +695,115 @@ Press the **Play** button and the audio will start playing:
 
 Now you can either press the **Stop** button, or you can click the **Back** button, the left-arrow in the top-left corner, to navigate back to the `HomePage` view.
 
-That's where we will leave it for now.
+### Step 23 - Add a Loading Indicator
+
+There is one little glitch with our code as written. It can be in a state where you select an episode and the data doesn't display right away, but the **Play** button is visible, and clicking it results in an error.
+
+What we need is a boolean property on the `DetailPageViewModel` which we can use to tell whether or not to display the UI. 
+
+Add the following to *DetailPageViewModel.cs*:
+
+```c#
+bool isReady = false;
+public bool IsReady { 
+    get
+    {
+        return isReady;
+    }
+    set
+    {
+        SetProperty(ref isReady, value);
+    }
+}
+```
+
+Now we can set the `IsReady` property in the `CurrentShow` setter to tell the UI we are ready to display.
+
+```c#
+private Show currentShow;
+public Show CurrentShow
+{
+    get
+    {
+        return currentShow;
+    }
+    set
+    {
+        IsReady = false;
+        SetProperty(ref currentShow, value);
+        var uri = new Uri(CurrentShow.ShowDetails.File.Url);
+        string DirectoryName = uri.Segments[uri.Segments.Length - 3];
+        string FileNameOnly = Path.GetFileName(CurrentShow.ShowDetails.File.Url);
+        Mp3FileName = DirectoryName.Substring(0, DirectoryName.Length - 1)
+            + FileNameOnly;
+        CachedFileName = Path.Combine(CacheDir, Mp3FileName);
+        // Does the file exist?
+        if (System.IO.File.Exists(CachedFileName))
+        {
+            // Yes! We are cached
+            IsCached = true;
+        }
+        IsReady = true;
+    }
+}
+```
+
+At the top of the setter, we set `IsReady` to false, and we set it true at the bottom of the setter.
+
+Now we need to change *DetailPage.xaml* to show a "Loading..." label when `IsReady` is false:
+
+```xaml
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DotNetRocks"
+             xmlns:viewmodels="clr-namespace:DotNetRocks.ViewModels"
+             x:Class="DotNetRocks.Views.DetailPage">
+
+    <ContentPage.BindingContext>
+        <viewmodels:DetailPageViewModel/>
+    </ContentPage.BindingContext>
+
+    <ContentPage.Resources>
+        <local:InverseBoolConverter x:Key="InverseBoolConverter"/>
+    </ContentPage.Resources>
+
+    <ContentPage.Content>
+        <StackLayout>
+            <StackLayout Margin="20" IsVisible="{Binding IsReady}">
+                <Label Text="{Binding CurrentShow.ShowTitle}"
+                FontSize="Title"
+                VerticalOptions="Start" 
+                HorizontalOptions="CenterAndExpand" />
+
+                <Button Text="Play"
+                        IsVisible="{Binding IsPlaying, 
+                            Converter={StaticResource InverseBoolConverter}}"
+                        Command="{Binding Play}" />
+                <Button Text="Stop" 
+                        IsVisible="{Binding IsPlaying}" 
+                        Command="{Binding Stop}" />
+                <Label IsVisible="{Binding IsPlaying}" Text="{Binding CurrentStatus}" />
+                <StackLayout Orientation="Horizontal">
+                    <Label Text="{Binding CurrentShow.ShowNumber}" />
+                    <Label Text="{Binding CurrentShow.DatePublished, StringFormat='Published {d}'}" />
+                </StackLayout>
+                <Label Text="{Binding CurrentShow.Description}" />
+            </StackLayout>
+            <StackLayout Margin="20" IsVisible="{Binding IsReady, 
+                            Converter={StaticResource InverseBoolConverter}}">
+                <Label Text="Loading..."
+                       VerticalOptions="Start" 
+                       HorizontalOptions="CenterAndExpand" />
+            </StackLayout>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
+```
+
+You can only have one outside component, so I added a new `StackLayout` to surround the existing UI.
+
+The existing `StackLayout`'s `IsVisible` property is bound to `IsReady`, so it will only show when `IsReady` is true.
+
+Then, I added a new `StackLayout` below with the `IsVisible` property bound to the ***opposite*** of `IsReady`. If you recall, we use the `InverseBoolConverter` to change false to true, and true to false. 
 
