@@ -4,7 +4,7 @@
 
 See more projects at https://github.com/carlfranklin/DotNetShow
 
-Watch the video at 
+Watch the video at https://youtu.be/W06R5HPTCOU
 
 All episodes are listed at https://thedotnetshow.com
 
@@ -809,7 +809,7 @@ Then, I added a new `StackLayout` below with the `IsVisible` property bound to t
 
 ### Step 24 - Add Guest Information to Detail Page
 
-Replace*DetailPage.xaml* with the following:
+Replace *DetailPage.xaml* with the following:
 
 ```xaml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -852,6 +852,7 @@ Replace*DetailPage.xaml* with the following:
                     <Label Text="{Binding CurrentShow.Description}" />
                     
                     <dxcv:DXCollectionView x:Name="GuestList"
+                            IsScrollBarVisible="False"
                             ItemsSource="{Binding CurrentShow.ShowDetails.Guests}">
                         <dxcv:DXCollectionView.ItemTemplate>
                             <DataTemplate>
@@ -914,4 +915,3 @@ And the Detail Page looks something like this. Multiple screen shots show all th
 <img src="md-images/image-20210627090206202.png" alt="image-20210627090206202" style="zoom:60%;" />
 
 And that's where we will leave it for now.
-
