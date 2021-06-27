@@ -36,6 +36,7 @@
                     </StackLayout>
                     <Label Text="{Binding CurrentShow.Description}" />
                     <dxcv:DXCollectionView x:Name="GuestList"
+                            IsScrollBarVisible="False"
                             ItemsSource="{Binding CurrentShow.ShowDetails.Guests}">
                         <dxcv:DXCollectionView.ItemTemplate>
                             <DataTemplate>
