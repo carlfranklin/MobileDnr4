@@ -50,12 +50,14 @@
                     </dxcv:DXCollectionView>
                 </StackLayout>
             </ScrollView>
+            
             <StackLayout Margin="20" IsVisible="{Binding IsReady, 
                             Converter={StaticResource InverseBoolConverter}}">
                 <Label Text="Loading..."
                        VerticalOptions="Start" 
                        HorizontalOptions="CenterAndExpand" />
             </StackLayout>
+            
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

@@ -807,3 +807,111 @@ The existing `StackLayout`'s `IsVisible` property is bound to `IsReady`, so it w
 
 Then, I added a new `StackLayout` below with the `IsVisible` property bound to the ***opposite*** of `IsReady`. If you recall, we use the `InverseBoolConverter` to change false to true, and true to false. 
 
+### Step 24 - Add Guest Information to Detail Page
+
+Replace*DetailPage.xaml* with the following:
+
+```xaml
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DotNetRocks"
+             xmlns:viewmodels="clr-namespace:DotNetRocks.ViewModels"
+             xmlns:dxcv="http://schemas.devexpress.com/xamarin/2014/forms/collectionview"
+             x:Class="DotNetRocks.Views.DetailPage">
+
+    <ContentPage.BindingContext>
+        <viewmodels:DetailPageViewModel/>
+    </ContentPage.BindingContext>
+
+    <ContentPage.Resources>
+        <local:InverseBoolConverter x:Key="InverseBoolConverter"/>
+    </ContentPage.Resources>
+
+    <ContentPage.Content>
+        <StackLayout>
+            <ScrollView IsVisible="{Binding IsReady}">
+                <StackLayout Margin="20" >
+                    <Label Text="{Binding CurrentShow.ShowTitle}"
+                        FontSize="Title"
+                        VerticalOptions="Start" 
+                        HorizontalOptions="CenterAndExpand" />
+                    <Button Text="Play"
+                        IsVisible="{Binding IsPlaying, 
+                            Converter={StaticResource InverseBoolConverter}}"
+                        Command="{Binding Play}" />
+                    <Button Text="Stop" 
+                        IsVisible="{Binding IsPlaying}" 
+                        Command="{Binding Stop}" />
+                    <Label IsVisible="{Binding IsPlaying}" Text="{Binding CurrentStatus}" />
+                    <StackLayout Orientation="Horizontal">
+                        <Label Text="{Binding CurrentShow.ShowNumber}" />
+                        <Label Text="{Binding CurrentShow.DatePublished, StringFormat='Published {d}'}" />
+                    </StackLayout>
+                    
+                    <Label Text="{Binding CurrentShow.Description}" />
+                    
+                    <dxcv:DXCollectionView x:Name="GuestList"
+                            ItemsSource="{Binding CurrentShow.ShowDetails.Guests}">
+                        <dxcv:DXCollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <StackLayout>
+                                    <Line Stroke="Gray" X1="0" X2="500" StrokeThickness="2" Margin="0,10,0,10" />
+                                    <Image Source="{Binding PhotoUrl}" HeightRequest="250" />
+                                    <Label Text="{Binding Name}"/>
+                                    <Label Text="{Binding Bio}"/>
+                                </StackLayout>
+                            </DataTemplate>
+                        </dxcv:DXCollectionView.ItemTemplate>
+                    </dxcv:DXCollectionView>
+                </StackLayout>
+            </ScrollView>
+            <StackLayout Margin="20" IsVisible="{Binding IsReady, 
+                            Converter={StaticResource InverseBoolConverter}}">
+                <Label Text="Loading..."
+                       VerticalOptions="Start" 
+                       HorizontalOptions="CenterAndExpand" />
+            </StackLayout>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
+```
+
+There can be many guests per show, so I had to use a `DxCollectionView` to display them, which presents a bit of a UI issue. The contents of the `DxCollectionView`, like the standard `ListView` or `CollectionView` controls, scroll independently of the rest of the content. I want the entire page to scroll as if it were a single document.
+
+To make it work, I had to move all the contents into a `ScrollView` control, which allows its contents to be scrolled as a single page.
+
+```xaml
+<ScrollView IsVisible="{Binding IsReady}">
+```
+
+This `ScrollView` must be contained inside a `StackLayout` because if `IsReady` is false, we still want to display the "Loading..." Label.
+
+Another embellishment: I added a single gray line to the top of each guest's information:
+
+```xaml
+<Line Stroke="Gray" X1="0" X2="500" StrokeThickness="2" Margin="0,10,0,10" />
+```
+
+Seeing how nice that looked, I added the line separating each show item in *HomePage.xaml* at the bottom of the `StackLayout` that displays the show information.
+
+```xaml
+    ...
+    <Line Stroke="Gray" X1="0" X2="500" StrokeThickness="2" Margin="0,10,0,10" />
+</StackLayout>
+```
+
+The Home Page now looks like this:
+
+<img src="md-images/image-20210627090103953.png" alt="image-20210627090103953" style="zoom:60%;" />
+
+And the Detail Page looks something like this. Multiple screen shots show all the content when scrolled:
+
+<img src="md-images/image-20210627090128905.png" alt="image-20210627090128905" style="zoom:60%;" />
+
+<img src="md-images/image-20210627090151451.png" alt="image-20210627090151451" style="zoom:60%;" />
+
+<img src="md-images/image-20210627090206202.png" alt="image-20210627090206202" style="zoom:60%;" />
+
+And that's where we will leave it for now.
+

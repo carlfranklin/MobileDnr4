@@ -41,8 +41,9 @@
                     <OnIdiom x:TypeArguments="Thickness" Phone="10,10,10,10" Tablet="71,0,0,0"/>
                 </dxcv:DXCollectionView.Margin>
             </dxcv:DXCollectionView>
-            <Button Text="Load More Shows"
-                    Command="{Binding LoadMoreShows}" />
+            
+            <Button Text="Load More Shows" Command="{Binding LoadMoreShows}" />
+            
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>
