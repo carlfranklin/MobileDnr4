@@ -629,8 +629,7 @@ Replace the contents of *HomePage.xaml* with the following:
              x:Class="DotNetRocks.Views.HomePage"
              xmlns:local="clr-namespace:DotNetRocks"
              xmlns:viewmodels="clr-namespace:DotNetRocks.ViewModels"
-             xmlns:dxcv="http://schemas.devexpress.com/xamarin/2014/forms/collectionview"
-             >
+             xmlns:dxcv="clr-namespace:DevExpress.XamarinForms.CollectionView;assembly=DevExpress.XamarinForms.CollectionView">
 
     <ContentPage.BindingContext>
         <viewmodels:HomePageViewModel/>
@@ -817,7 +816,7 @@ Replace *DetailPage.xaml* with the following:
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DotNetRocks"
              xmlns:viewmodels="clr-namespace:DotNetRocks.ViewModels"
-             xmlns:dxcv="http://schemas.devexpress.com/xamarin/2014/forms/collectionview"
+             xmlns:dxcv="clr-namespace:DevExpress.XamarinForms.CollectionView;assembly=DevExpress.XamarinForms.CollectionView"
              x:Class="DotNetRocks.Views.DetailPage">
 
     <ContentPage.BindingContext>

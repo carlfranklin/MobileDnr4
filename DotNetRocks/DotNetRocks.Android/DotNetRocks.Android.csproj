@@ -55,7 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DevExpress.XamarinForms.CollectionView">
-      <Version>20.2.7</Version>
+      <Version>21.1.4</Version>
     </PackageReference>
     <PackageReference Include="MonkeyCache.FileStore">
       <Version>1.5.2</Version>

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DevExpress.XamarinForms.CollectionView" Version="20.2.7" />
+    <PackageReference Include="DevExpress.XamarinForms.CollectionView" Version="21.1.4" />
     <PackageReference Include="MonkeyCache.FileStore" Version="1.5.2" />
     <PackageReference Include="Plugin.MediaManager.Forms" Version="1.0.8" />
     <PackageReference Include="Refractored.MvvmHelpers" Version="1.6.2" />
